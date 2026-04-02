@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="image/openclaw Voice Agent Skill.jpg" alt="Voice Agent Banner" width="100%">
+  <img src="image/openclawskill.jpg" alt="Voice Agent Banner" width="100%">
 </div>
 
 ---
