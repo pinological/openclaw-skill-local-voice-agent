@@ -1,3 +1,9 @@
+<div align="center">
+  <img src="image/openclaw Voice Agent Skill.jpg" alt="Voice Agent Banner" width="100%">
+</div>
+
+---
+
 # 🎤 Local Voice Agent for OpenClaw
 
 **Complete offline voice-to-voice AI assistant (Whisper.cpp STT + Pocket-TTS)**
@@ -285,9 +291,8 @@ MIT License - See LICENSE file
 
 ## 💬 Support
 
-- **GitHub Issues:** [Your Repo Link]
+- **GitHub Issues:** https://github.com/pinological/openclaw-skill-local-voice-agent
 - **OpenClaw Discord:** https://discord.com/invite/clawd
-- **Documentation:** [Your Docs Link]
 
 ---
 

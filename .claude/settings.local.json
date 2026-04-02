@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(bash -n install.sh bin/voice-to-text bin/text-to-voice bin/voice-agent examples/morning-briefing.sh)",
-      "Bash(python3 -c \"import yaml; yaml.safe_load\\(open\\('config/voices.yaml'\\)\\)\")",
-      "Bash(grep -v \"^$\")"
-    ]
-  }
-}
