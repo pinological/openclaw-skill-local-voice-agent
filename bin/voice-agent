@@ -1,0 +1,166 @@
+#!/bin/bash
+# Voice Agent - Complete voice-to-voice AI assistant
+# Usage: voice-agent "Your command" [--interactive|--file <audio-file>]
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VOICE_TO_TEXT="$SCRIPT_DIR/voice-to-text"
+TEXT_TO_VOICE="$SCRIPT_DIR/text-to-voice"
+POCKET_TTS_URL="${POCKET_TTS_URL:-http://localhost:5000}"
+WHISPER_DIR="${WHISPER_DIR:-$HOME/.local/whisper.cpp}"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Temporary files
+TEMP_DIR=$(mktemp -d)
+trap "rm -rf $TEMP_DIR" EXIT
+
+usage() {
+    echo "🎤 Voice Agent - Voice-to-Voice AI Assistant"
+    echo ""
+    echo "Usage: $0 \"<command>\" [options]"
+    echo ""
+    echo "Options:"
+    echo "  --interactive    Enter conversation mode"
+    echo "  --file <file>    Process audio file instead of text command"
+    echo "  --no-voice       Text output only (no TTS)"
+    echo "  --help           Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  $0 \"What's the weather today?\""
+    echo "  $0 --interactive"
+    echo "  $0 --file recording.wav"
+    echo "  $0 \"Hello!\" --no-voice"
+    exit 1
+}
+
+log() {
+    echo -e "${BLUE}🤖 $1${NC}"
+}
+
+error() {
+    echo -e "${RED}❌ $1${NC}"
+}
+
+success() {
+    echo -e "${GREEN}✅ $1${NC}"
+}
+
+# Parse arguments
+INTERACTIVE=false
+AUDIO_FILE=""
+NO_VOICE=false
+COMMAND=""
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --interactive)
+            INTERACTIVE=true
+            shift
+            ;;
+        --file)
+            AUDIO_FILE="$2"
+            shift 2
+            ;;
+        --no-voice)
+            NO_VOICE=true
+            shift
+            ;;
+        --help)
+            usage
+            ;;
+        *)
+            COMMAND="$1"
+            shift
+            ;;
+    esac
+done
+
+# Interactive mode
+if [ "$INTERACTIVE" = true ]; then
+    echo -e "${GREEN}🎤 Voice Agent - Interactive Mode${NC}"
+    echo -e "${YELLOW}Type your messages (or 'quit' to exit)${NC}"
+    echo ""
+    
+    while true; do
+        echo -e "${BLUE}You:${NC} "
+        read -r INPUT
+        
+        if [ "$INPUT" = "quit" ] || [ "$INPUT" = "exit" ]; then
+            echo -e "${GREEN}👋 Goodbye!${NC}"
+            break
+        fi
+        
+        if [ -n "$INPUT" ]; then
+            $0 "$INPUT" $([ "$NO_VOICE" = true ] && echo "--no-voice")
+        fi
+    done
+    exit 0
+fi
+
+# File mode
+if [ -n "$AUDIO_FILE" ]; then
+    if [ ! -f "$AUDIO_FILE" ]; then
+        error "File not found: $AUDIO_FILE"
+        exit 1
+    fi
+    
+    log "Processing audio file: $AUDIO_FILE"
+    
+    # Transcribe
+    TRANSCRIPT=$("$VOICE_TO_TEXT" "$AUDIO_FILE" 2>/dev/null | grep -A100 "TRANSCRIPT" | grep -B100 "END" | head -n -1 | tail -n +2)
+    
+    if [ -z "$TRANSCRIPT" ]; then
+        error "Transcription failed"
+        exit 1
+    fi
+    
+    success "Transcribed: $TRANSCRIPT"
+    COMMAND="$TRANSCRIPT"
+fi
+
+# Check if we have a command
+if [ -z "$COMMAND" ]; then
+    usage
+fi
+
+log "Processing: $COMMAND"
+
+# Here you would integrate with OpenClaw or your AI backend
+# For now, we'll simulate a response
+# In production, this would call OpenClaw API
+
+log "Sending to AI..."
+
+# Simulate AI response (replace with actual OpenClaw integration)
+# Example: RESPONSE=$(openclaw ask "$COMMAND")
+RESPONSE="This is a simulated response. In production, this would be from OpenClaw AI processing: '$COMMAND'"
+
+success "AI Response: $RESPONSE"
+
+# Generate voice response (unless --no-voice)
+if [ "$NO_VOICE" = false ]; then
+    log "Generating voice response..."
+    
+    OUTPUT="$TEMP_DIR/response.wav"
+    "$TEXT_TO_VOICE" "$RESPONSE" "$OUTPUT"
+    
+    if [ -f "$OUTPUT" ]; then
+        success "Voice response generated: $OUTPUT"
+        
+        # Play if ffplay available
+        if command -v ffplay &> /dev/null; then
+            log "Playing audio..."
+            ffplay -nodisp -autoexit "$OUTPUT" 2>/dev/null
+        fi
+    fi
+fi
+
+echo ""
+echo -e "${GREEN}✅ Complete!${NC}"
